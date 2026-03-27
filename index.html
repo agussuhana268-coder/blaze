@@ -464,7 +464,13 @@ input,select{-webkit-user-select:text!important;user-select:text!important;}
 .toast.ti{background:rgba(5,5,16,.97);border:1px solid rgba(255,255,255,.08);color:var(--t4);}
 @keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.88);}to{opacity:1;transform:none;}}
 @keyframes tout{to{opacity:0;transform:translateY(-8px) scale(.94);}}
-.t-ico svg{width:14px;height:14px;flex-shrink:0;}
+/* Toast icon — explicit size beats Android WebView SVG auto-expand */
+.t-ico{
+  width:16px!important;height:16px!important;
+  min-width:16px!important;min-height:16px!important;
+  max-width:16px!important;max-height:16px!important;
+  flex-shrink:0;display:block;overflow:hidden;
+}
 </style>
 </head>
 <body>
@@ -833,6 +839,21 @@ function drawPts(){
 window.addEventListener('resize',resize);
 resize();drawPts();
 
+/* Android back-navigation also restores forms — kill it on pageshow */
+window.addEventListener('pageshow',function(){
+  setTimeout(function(){
+    if(!window.FEATS)return;
+    window.FEATS.forEach(function(f){
+      f.on=false;
+      var inp=document.getElementById('tog_'+f.id);
+      if(inp)inp.checked=false;
+      var row=document.getElementById('fr_'+f.id);
+      if(row)row.className='frow'+(f.bonus?' bonus':'');
+    });
+    if(window.refreshCounts)window.refreshCounts();
+  },50);
+});
+
 /* ── Audio ── */
 var AC=null;
 function ensureAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();}
@@ -842,15 +863,15 @@ function tone(f,tp,d,v){
   try{var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type=tp||'sine';o.frequency.setValueAtTime(f,AC.currentTime);g.gain.setValueAtTime(0,AC.currentTime);g.gain.linearRampToValueAtTime(v||.1,AC.currentTime+.006);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+(d||.12));o.start(AC.currentTime);o.stop(AC.currentTime+(d||.12)+.02);}catch(e){}
 }
 var SFX={
-  click:function(){ensureAudio();tone(860,'square',.05,.09);tone(430,'sine',.07,.06);},
-  on:function(){ensureAudio();[360,540,720].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.11,.09);},i*38);});},
-  off:function(){ensureAudio();[720,540,360].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.09,.07);},i*34);});},
-  ok:function(){ensureAudio();[440,554,660,880].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.2,.08);},i*50);});try{var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sawtooth';o.frequency.setValueAtTime(150,AC.currentTime+.25);o.frequency.exponentialRampToValueAtTime(950,AC.currentTime+.6);g.gain.setValueAtTime(.04,AC.currentTime+.25);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.6);o.start(AC.currentTime+.25);o.stop(AC.currentTime+.65);}catch(e){}},
-  fail:function(){ensureAudio();[160,130,100].forEach(function(f,i){setTimeout(function(){tone(f,'sawtooth',.16,.16);},i*65);});},
-  pop:function(){ensureAudio();tone(560,'sine',.09,.08);},
-  cancel:function(){ensureAudio();tone(360,'sine',.08,.08);},
-  injst:function(){ensureAudio();try{var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sawtooth';o.frequency.setValueAtTime(55,AC.currentTime);o.frequency.linearRampToValueAtTime(500,AC.currentTime+.5);g.gain.setValueAtTime(.1,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.5);o.start(AC.currentTime);o.stop(AC.currentTime+.55);}catch(e){}},
-  injdn:function(){ensureAudio();[260,390,520,650,800].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.2,.09);},i*42);});}
+  click:function(){ensureAudio();tone(860,'square',.05,.22);tone(430,'sine',.07,.16);},
+  on:function(){ensureAudio();[360,540,720].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.14,.24);},i*38);});},
+  off:function(){ensureAudio();[720,540,360].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.12,.2);},i*34);});},
+  ok:function(){ensureAudio();[440,554,660,880].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.32,.18);},i*50);});try{var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sawtooth';o.frequency.setValueAtTime(150,AC.currentTime+.25);o.frequency.exponentialRampToValueAtTime(950,AC.currentTime+.6);g.gain.setValueAtTime(.12,AC.currentTime+.25);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.6);o.start(AC.currentTime+.25);o.stop(AC.currentTime+.65);}catch(e){}},
+  fail:function(){ensureAudio();[160,130,100].forEach(function(f,i){setTimeout(function(){tone(f,'sawtooth',.18,.32);},i*65);});},
+  pop:function(){ensureAudio();tone(560,'sine',.09,.2);},
+  cancel:function(){ensureAudio();tone(360,'sine',.08,.18);},
+  injst:function(){ensureAudio();try{var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sawtooth';o.frequency.setValueAtTime(55,AC.currentTime);o.frequency.linearRampToValueAtTime(500,AC.currentTime+.5);g.gain.setValueAtTime(.28,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.5);o.start(AC.currentTime);o.stop(AC.currentTime+.55);}catch(e){}},
+  injdn:function(){ensureAudio();[260,390,520,650,800].forEach(function(f,i){setTimeout(function(){tone(f,'sine',.32,.22);},i*42);});}
 };
 window.SFX=SFX;
 
@@ -858,9 +879,9 @@ window.SFX=SFX;
 function gi(id){return document.getElementById(id);}
 
 var TIC={
-  s:'<svg class="t-ico" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#27c93f" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="#27c93f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  e:'<svg class="t-ico" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#ff4848" stroke-width="1.3"/><line x1="5" y1="5" x2="11" y2="11" stroke="#ff4848" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="5" x2="5" y2="11" stroke="#ff4848" stroke-width="1.5" stroke-linecap="round"/></svg>',
-  i:'<svg class="t-ico" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#8080a0" stroke-width="1.3"/><line x1="8" y1="7.5" x2="8" y2="11" stroke="#8080a0" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="5.5" r=".9" fill="#8080a0"/></svg>'
+  s:'<span class="t-ico" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#27c93f" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="#27c93f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>',
+  e:'<span class="t-ico" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#ff4848" stroke-width="1.3"/><line x1="5" y1="5" x2="11" y2="11" stroke="#ff4848" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="5" x2="5" y2="11" stroke="#ff4848" stroke-width="1.5" stroke-linecap="round"/></svg></span>',
+  i:'<span class="t-ico" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#8080a0" stroke-width="1.3"/><line x1="8" y1="7.5" x2="8" y2="11" stroke="#8080a0" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="5.5" r=".9" fill="#8080a0"/></svg></span>'
 };
 function toast(msg,type,ms){
   type=type||'i';ms=ms||2400;
@@ -1003,8 +1024,9 @@ function buildFeats(){
           '<span class="frow-desc">'+f.desc+'</span>'+
           '<span class="frow-tag'+(f.bonus?' btag':'')+'">'+f.badge+'</span>'+
         '</div>'+
+        /* NO name attr — prevents Android Chrome form restoration */
         '<label class="tog" onclick="event.stopPropagation()">'+
-          '<input type="checkbox" id="tog_'+f.id+'" autocomplete="off">'+
+          '<input type="checkbox" id="tog_'+f.id+'" autocomplete="off" data-feat="'+f.id+'">'+
           '<div class="tog-track"></div>'+
           '<div class="tog-knob"></div>'+
         '</label>';
@@ -1018,19 +1040,34 @@ function buildFeats(){
     c.appendChild(fl);
   });
 
-  /* ── Explicitly force all checkboxes OFF
-     (defeats browser form state restoration) ── */
+  /* ── Attach change listeners ── */
   FEATS.forEach(function(f){
     var inp=document.getElementById('tog_'+f.id);
     if(inp){
-      inp.checked=false;
-      inp.defaultChecked=false;
       inp.addEventListener('change',function(){onFeatToggle(f.id,this.checked);});
     }
   });
 
   buildQuickList();
-  refreshCounts();
+
+  /*
+   * ANDROID FIX: Chrome restores checkbox state AFTER JS runs.
+   * Force-reset twice: once immediately, once after paint (100ms),
+   * once more after any async browser restoration (300ms).
+   */
+  function forceAllOff(){
+    FEATS.forEach(function(f){
+      f.on=false;
+      var inp=document.getElementById('tog_'+f.id);
+      if(inp){inp.checked=false;inp.defaultChecked=false;}
+      var row=document.getElementById('fr_'+f.id);
+      if(row)row.className='frow'+(f.bonus?' bonus':'');
+    });
+    refreshCounts();
+  }
+  forceAllOff();
+  setTimeout(forceAllOff,80);
+  setTimeout(forceAllOff,280);
 }
 window.buildFeats=buildFeats;
 
@@ -1069,6 +1106,7 @@ function refreshCounts(){
   var h=gi('hstatA');if(h)h.textContent=n;
   refreshInjMod();
 }
+window.refreshCounts=refreshCounts;
 function refreshInjMod(){
   var n=FEATS.filter(function(f){return f.on;}).length;
   var el=gi('injModCnt');if(el)el.textContent=n+' MODULE'+(n!==1?'S':'');
